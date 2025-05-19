@@ -1,0 +1,20 @@
+´´´
+export PATH="$HOME/.pyenv/bin:$PATH"
+eval "$(pyenv init --path)"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+´´´
+
+then reload shell
+´´´
+exec "$SHELL"
+´´´
+
+if python3.13 is not isntalled, do this step:
+´´´
+pyenv install 3.13.0
+´´´
+make your local use this python now
+´´´
+pyenv local 3.13.0
+´´´
