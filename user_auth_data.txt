@@ -1,2 +1,0 @@
-username: nomaan
-password: Password_2
