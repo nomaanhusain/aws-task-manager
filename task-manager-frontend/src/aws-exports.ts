@@ -2,8 +2,8 @@
 const awsmobile = {
   Auth: {
     Cognito: {
-      userPoolId: 'eu-central-1_pF1tMuuHY',
-      userPoolClientId: '7ev0qophtm7b8isaq2313natbo',
+      userPoolId: 'eu-central-1_E9VsySILE',
+      userPoolClientId: '7mbkrjfb53vasdk56t0h4q4hiv',
       region: 'eu-central-1',
     }
   }

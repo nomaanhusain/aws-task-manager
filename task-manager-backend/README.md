@@ -1,5 +1,10 @@
 # task-manager-backend
 
+## How user is added to Users table
+- There is a lambda function called post_confirmation_user_add
+- UserTable is prepared in the template.yaml
+- On the AWS Cognito Console under Extensions I have added a Post Confirmation Lambda Trigger to add the User
+
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
 
 - hello_world - Code for the application's Lambda function.

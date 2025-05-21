@@ -45,4 +45,22 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["PostConfirmationFunction"]
 
+[function_build_definitions.e84595f3-cf4e-45ab-a392-a9c5f1c445a2]
+codeuri = "/home/nomaan/TaskManagerProject/task-manager-backend/get_users"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["GetUserFunction"]
+
+[function_build_definitions.578817d2-8cc1-48d1-a2d4-ae6157a15521]
+codeuri = "/home/nomaan/TaskManagerProject/task-manager-backend/fetch_user"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["FetchUserFunction"]
+
 [layer_build_definitions]

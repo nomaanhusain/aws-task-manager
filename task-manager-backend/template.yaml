@@ -96,13 +96,36 @@ Resources:
       CodeUri: post_confirmation_user_add/
       Handler: app.lambda_handler
       Runtime: python3.13
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: UsersTable
+            TableName: !Ref UsersTable
+  GetUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_users/
+      Handler: app.lambda_handler
+      Runtime: python3.13
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        GetUserApi:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
   UsersTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: UsersTable
+      TableName: Users
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: user_id
@@ -122,6 +145,58 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+  
+  FetchUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: fetch_user/
+      Handler: app.lambda_handler
+      Runtime: python3.13
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        FetchUserApi:
+          Type: Api
+          Properties:
+            Path: /me
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: TaskManagerUserPool
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      LambdaConfig:
+        PostConfirmation: !GetAtt PostConfirmationFunction.Arn
+
+  PostConfirmationInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref PostConfirmationFunction
+      Action: lambda:InvokeFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt UserPool.Arn
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: NewTaskManager
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_CUSTOM_AUTH
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
@@ -143,7 +218,7 @@ Globals:
       DefaultAuthorizer: CognitoAuthorizer
       Authorizers:
         CognitoAuthorizer:
-          UserPoolArn: arn:aws:cognito-idp:eu-central-1:665207553327:userpool/eu-central-1_pF1tMuuHY
+          UserPoolArn: arn:aws:cognito-idp:eu-central-1:665207553327:userpool/eu-central-1_E9VsySILE
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM

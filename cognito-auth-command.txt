@@ -1,1 +1,1 @@
-aws cognito-idp initiate-auth   --auth-flow USER_PASSWORD_AUTH   --client-id 7ev0qophtm7b8isaq2313natbo  --auth-parameters USERNAME=promaxuser,PASSWORD=Password_123
+aws cognito-idp initiate-auth   --auth-flow USER_PASSWORD_AUTH   --client-id 7mbkrjfb53vasdk56t0h4q4hiv  --auth-parameters USERNAME=nomaanhusain@gmail.com,PASSWORD=Password_2
