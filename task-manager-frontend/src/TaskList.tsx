@@ -6,8 +6,10 @@ type Task = {
   title: string;
   completion_status: string;
 };
-
-export default function TaskList() {
+type Props = {
+  refresh: number;
+};
+export default function TaskList({ refresh }: Props) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +35,7 @@ export default function TaskList() {
     };
 
     fetchTasks();
-  }, []);
+  }, [refresh]);
 
   if (loading) return <p>Loading tasks...</p>;
 
