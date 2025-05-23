@@ -16,6 +16,12 @@ def lambda_handler(event, context):
 
     update_expression = []
     expression_attribute_values = {}
+    
+    headers = {
+        "Access-Control-Allow-Origin": "*",  # Or your frontend URL
+        "Access-Control-Allow-Headers": "Content-Type,Authorization",
+        "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
+    }
 
     if 'title' in body:
         update_expression.append("title = :t")
@@ -28,6 +34,7 @@ def lambda_handler(event, context):
     if not update_expression:
         return {
             "statusCode": 400,
+            "headers": headers,
             "body": json.dumps({"message": "Nothing to update"})
         }
 
@@ -37,9 +44,9 @@ def lambda_handler(event, context):
         item = response.get('Item')
 
         if not item:
-            return {"statusCode": 404, "body": json.dumps({"message": "Task not found"})}
+            return {"statusCode": 404, "headers": headers, "body": json.dumps({"message": "Task not found"})}
         if item['createdBy'] != user_id:
-            return {"statusCode": 403, "body": json.dumps({"message": "Not authorized to modify this task"})}
+            return {"statusCode": 403, "headers": headers, "body": json.dumps({"message": "Not authorized to modify this task"})}
 
         # Update the item
         table.update_item(
@@ -48,7 +55,7 @@ def lambda_handler(event, context):
             ExpressionAttributeValues=expression_attribute_values
         )
 
-        return {"statusCode": 200, "body": json.dumps({"message": "Task updated"})}
+        return {"statusCode": 200, "headers": headers, "body": json.dumps({"message": "Task updated"})}
 
     except Exception as e:
-        return {"statusCode": 500, "body": json.dumps({"message": "Internal Server Error", "error": str(e)})}
+        return {"statusCode": 500, "headers": headers, "body": json.dumps({"message": "Internal Server Error", "error": str(e)})}

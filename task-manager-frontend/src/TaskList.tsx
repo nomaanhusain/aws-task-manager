@@ -3,7 +3,8 @@ import { fetchAuthSession } from "aws-amplify/auth";
 import { Box, Spinner, Text,
   Button, Heading,
   Table, Badge, Dialog, Portal,
-  CloseButton, Presence
+  CloseButton, Presence,
+  Editable
  } from "@chakra-ui/react"
 
 import CreateTaskForm from "./components/CreateTaskForm";
@@ -47,6 +48,7 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
 
     fetchTasks();
   }, [refresh]);
+  
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -64,6 +66,27 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
   const handleTaskCreated = () => {
     onTaskCreated();
     setOpen(false);  // Close the dialog
+  };
+
+  const updateTaskTitle = async (taskId: string, newTitle: string) => {
+    try {
+      const session = await fetchAuthSession();
+      const token = session.tokens?.idToken?.toString();
+      const response = await fetch(`https://uctzoa3zi9.execute-api.eu-central-1.amazonaws.com/Prod/tasks/${taskId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title: newTitle }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to update task title");
+      }
+    } catch (error) {
+      console.error("Error updating title:", error);
+      // Optionally show toast or UI feedback
+    }
   };
 
   if (loading) {
@@ -131,7 +154,10 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
         {tasks.map((task) => (
           <Table.Row key={task.id}>
             <Table.Cell>
-              <strong>{task.title}</strong>
+              <Editable.Root defaultValue={task.title} onValueCommit={(newTitle) => updateTaskTitle(task.id, newTitle.value)}>
+              <Editable.Preview />
+                <Editable.Input />
+              </Editable.Root>
             </Table.Cell>
             <Table.Cell>
               <Badge colorPalette={getStatusColor(task.completion_status)}>
@@ -144,7 +170,6 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
       </Table.Root>
       </Presence>
       )}
-
     </Box>
   );
 }
