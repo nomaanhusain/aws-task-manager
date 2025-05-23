@@ -1,0 +1,217 @@
+    //TaskList.tsx
+    // <div>
+    //   <h2>Your Tasks</h2>
+    //   {tasks.length === 0 ? (
+    //     <p>No tasks yet.</p>
+    //   ) : (
+    //     <ul>
+    //       {tasks.map((task) => (
+    //         <li key={task.id}>
+    //           <strong>{task.title}</strong> — {task.completion_status}
+    //         </li>
+    //       ))}
+    //     </ul>
+    //   )}
+    // </div>a
+
+
+
+
+    //TaskListForm return
+      return (
+    <form onSubmit={handleSubmit}>
+
+    <Field.Root required>
+      <Field.Label>
+        Task Title
+        <Field.RequiredIndicator />
+      </Field.Label>
+      <Input placeholder="Some Awesome Task" 
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}/>
+    </Field.Root>
+
+
+    <Box>
+      <Text fontWeight="bold" mb={2}>Assign to:</Text>
+      <CheckboxGroup value={assignedTo}>
+        <Stack>
+          {users.map((user) => (
+            <Checkbox.Root
+              key={user.user_id}
+              value={user.user_id}
+              checked={assignedTo.includes(user.user_id)}
+              onCheckedChange={() => handleToggleAssign(user.user_id)}
+            >
+              <Checkbox.HiddenInput />
+              <Checkbox.Control />
+              <Checkbox.Label>{user.username}</Checkbox.Label>
+            </Checkbox.Root>
+          ))}
+        </Stack>
+      </CheckboxGroup>
+    </Box>
+
+    <Button
+      type="submit"
+      mt={4}
+      colorScheme="blue"
+    >
+      Create Task
+    </Button>
+    </form>
+  );
+
+
+
+  Chakra UI Checkbox from TaskListForm:
+        <Box mt={6}>
+        <Text 
+          fontWeight="medium" 
+          fontSize="sm"
+          mb={3}
+        >
+          Assign to:
+        </Text>
+        <CheckboxGroup value={assignedTo}>
+          <Stack>
+            {users.map((user) => (
+              <Checkbox.Root
+                key={user.user_id}
+                value={user.user_id}
+                checked={assignedTo.includes(user.user_id)}
+                onCheckedChange={() => handleToggleAssign(user.user_id)}
+              >
+                <Checkbox.Control 
+                  colorScheme="blue" 
+                  borderRadius="md" 
+                  borderColor="gray.300"
+                />
+                <Checkbox.Label 
+                  ml={2} 
+                  fontSize="sm"
+                  _checked={{ color: "blue.600", fontWeight: "medium" }}
+                >
+                  {user.username}
+                </Checkbox.Label>
+                <Checkbox.HiddenInput />
+              </Checkbox.Root>
+            ))}
+          </Stack>
+        </CheckboxGroup>
+      </Box>
+
+AssignUserComboBox.tsx
+
+  
+import {
+    Badge,
+    Combobox,
+    Box,
+    Text,
+    Portal,
+    Wrap,
+    createListCollection,
+  } from "@chakra-ui/react";
+  import { useMemo, useState } from "react";
+  
+  type User = {
+    user_id: string;
+    username: string;
+  };
+  
+  type Props = {
+    users: User[];
+    assignedTo: string[];
+    setAssignedTo: (ids: string[]) => void;
+  };
+  
+  export default function AssignUserCombobox({ users, assignedTo, setAssignedTo }: Props) {
+    const [searchValue, setSearchValue] = useState("");
+    console.log("Users in combobox:", users);
+  
+    const filteredUsers = useMemo(
+      () =>
+        users.filter((user) =>
+          user.username.toLowerCase().includes(searchValue.toLowerCase())
+        ),
+      [users, searchValue]
+    );
+  
+    const collection = useMemo(
+      () =>
+        createListCollection({
+          items: filteredUsers.map((u) => ({ id: u.user_id, value: u.username })),
+        }),
+      [filteredUsers]
+    );
+  
+    const handleValueChange = (details: Combobox.ValueChangeDetails) => {
+      console.log("Value changed:", details);
+      setAssignedTo(details.value); // this will be an array of user_id strings
+    };
+
+    // console.log("Search value:", searchValue);
+    // console.log("Filtered users:", filteredUsers);
+    // console.log("Items in collection:", collection.items)
+    // console.log("Collection:", collection);
+
+  
+    return (
+      <Box mt={6}>
+        <Text 
+          fontWeight="medium" 
+          fontSize="sm"
+          mb={3}>
+            Assign to
+        </Text>
+
+        
+  
+        <Combobox.Root
+          collection={collection}
+          multiple
+          closeOnSelect={false}
+          value={assignedTo}
+          onValueChange={handleValueChange}
+          onInputValueChange={(details) => setSearchValue(details.inputValue)}
+          width="full"
+        >
+          <Wrap gap="2" mb={2}>
+            {assignedTo.map((id) => {
+              const user = users.find((u) => u.user_id === id);
+              return user ? <Badge key={id}>{user.username}</Badge> : null;
+            })}
+          </Wrap>
+  
+          <Combobox.Control>
+            <Combobox.Input placeholder="Search users..." />
+            <Combobox.IndicatorGroup>
+              <Combobox.Trigger />
+            </Combobox.IndicatorGroup>
+          </Combobox.Control>
+  
+          <Portal>
+            <Combobox.Positioner>
+              <Combobox.Content>
+                <Combobox.ItemGroup>
+                  <Combobox.ItemGroupLabel>Users</Combobox.ItemGroupLabel>
+                  {collection.items.length === 0 ? (
+                    <Combobox.Empty>No users found</Combobox.Empty>
+                  ) : (
+                    collection.items.map((user) => (
+                      <Combobox.Item key={user.id} item={user.value}>
+                        {user.value}
+                        <Combobox.ItemIndicator />
+                      </Combobox.Item>
+                    ))
+                  )}
+                </Combobox.ItemGroup>
+              </Combobox.Content>
+            </Combobox.Positioner>
+          </Portal>
+        </Combobox.Root>
+      </Box>
+    );
+  }
+  

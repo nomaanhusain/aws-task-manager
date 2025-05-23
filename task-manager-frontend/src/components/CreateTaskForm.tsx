@@ -2,16 +2,14 @@ import { useEffect, useState } from "react";
 import { fetchAuthSession } from "aws-amplify/auth";
 import {
   Box,
-  Checkbox,
-  CheckboxGroup,
-  Stack,
-  Text,
   Button,
   Field,
   Input,
+  Spinner,
 } from "@chakra-ui/react";
 // import { toaster } from "@/components/ui/toaster"
 import { useToast } from "@chakra-ui/toast";
+import AssignUserCombobox from "./AssignUserComboBox";
 
 type User = {
   user_id: string;
@@ -22,12 +20,14 @@ type User = {
 
 type Props = {
   onTaskCreated: () => void;
+  containerRef: React.RefObject<HTMLDivElement | null>;
 };
 
-export default function CreateTaskForm({ onTaskCreated }: Props) {
+export default function CreateTaskForm({ onTaskCreated, containerRef }: Props) {
   const [title, setTitle] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [assignedTo, setAssignedTo] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -40,23 +40,25 @@ export default function CreateTaskForm({ onTaskCreated }: Props) {
       });
 
       const data = await res.json();
-      console.log("Fetched users:", data);
+      // console.log("Fetched users:", data);
       setUsers(data);
     };
 
     fetchUsers();
   }, []);
 
-  const handleToggleAssign = (userId: string) => {
-    setAssignedTo((prev) =>
-      prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
-    );
-  };
+  // const handleToggleAssign = (userId: string) => {
+  //   setAssignedTo((prev) =>
+  //     prev.includes(userId)
+  //       ? prev.filter((id) => id !== userId)
+  //       : [...prev, userId]
+  //   );
+  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    try {
     const session = await fetchAuthSession();
     const token = session.tokens?.idToken?.toString();
 
@@ -80,50 +82,57 @@ export default function CreateTaskForm({ onTaskCreated }: Props) {
     setTitle("");
     setAssignedTo([]);
     onTaskCreated();
+    }finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 border p-4 rounded">
-
-    <Field.Root 
-      required>
-      <Field.Label>
-        Task Title
-        <Field.RequiredIndicator />
-      </Field.Label>
-      <Input placeholder="Some Awesome Task" 
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}/>
-    </Field.Root>
-
-
-    <Box>
-      <Text fontWeight="bold" mb={2}>Assign to:</Text>
-      <CheckboxGroup value={assignedTo}>
-        <Stack>
-          {users.map((user) => (
-            <Checkbox.Root
-              key={user.user_id}
-              value={user.user_id}
-              checked={assignedTo.includes(user.user_id)}
-              onCheckedChange={() => handleToggleAssign(user.user_id)}
-            >
-              <Checkbox.HiddenInput />
-              <Checkbox.Control />
-              <Checkbox.Label>{user.username}</Checkbox.Label>
-            </Checkbox.Root>
-          ))}
-        </Stack>
-      </CheckboxGroup>
-    </Box>
-
-    <Button
-      type="submit"
-      mt={4}
-      colorScheme="blue"
+    <form onSubmit={handleSubmit}>
+    <Box 
+      p={6}
+      borderRadius="lg" 
+      boxShadow="sm"
+      borderWidth="1px"
+      borderColor="gray.100"
     >
-      Create Task
-    </Button>
-    </form>
+      <Field.Root required>
+        <Field.Label fontSize="sm" fontWeight="medium" mb={1}>
+          Task Title
+          <Field.RequiredIndicator color="red.500" />
+        </Field.Label>
+        <Input 
+          placeholder="My new awesome task" 
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          borderRadius="md"
+          size="md"
+        />
+      </Field.Root>
+
+      {users.length === 0 ? (
+      <Spinner size="md" />
+      ) : (
+      <AssignUserCombobox
+        users={users}
+        assignedTo={assignedTo}
+        setAssignedTo={setAssignedTo}
+        containerRef={containerRef}
+      />
+    )}
+
+      <Button
+        type="submit"
+        mt={8}
+        colorScheme="blue"
+        width="full"
+        size="md"
+        loading={isSubmitting} // Add this state if you want loading indicator
+        loadingText="Creating..."
+      >
+        Create Task
+      </Button>
+    </Box>
+  </form>
   );
 }

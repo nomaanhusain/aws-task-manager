@@ -1,5 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { fetchAuthSession } from "aws-amplify/auth";
+import { Box, Spinner, Text,
+  Button, Heading,
+  Table, Badge, Dialog, Portal,
+  CloseButton, Presence
+ } from "@chakra-ui/react"
+
+import CreateTaskForm from "./components/CreateTaskForm";
 
 type Task = {
   id: string;
@@ -8,10 +15,14 @@ type Task = {
 };
 type Props = {
   refresh: number;
+  onTaskCreated: () => void;
 };
-export default function TaskList({ refresh }: Props) {
+
+export default function TaskList({ onTaskCreated, refresh }: Props) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const dialogContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -37,22 +48,103 @@ export default function TaskList({ refresh }: Props) {
     fetchTasks();
   }, [refresh]);
 
-  if (loading) return <p>Loading tasks...</p>;
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "completed":
+        return "green";
+      case "in progress":
+        return "blue";
+      case "not started":
+        return "yellow";
+      default:
+        return "gray";
+    }
+  };
 
+  const handleTaskCreated = () => {
+    onTaskCreated();
+    setOpen(false);  // Close the dialog
+  };
+
+  if (loading) {
+    return (
+      <Box textAlign="center" py={10}>
+        <Spinner size="xl" />
+        <Text mt={4}>Loading tasks...</Text>
+      </Box>
+    );
+  }
   return (
-    <div>
-      <h2>Your Tasks</h2>
+    <Box p={5} borderWidth="2px" borderRadius="lg" boxShadow="md">
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
+        <Heading as="h2" size="lg">
+          Your Tasks
+        </Heading>
+        <Dialog.Root open={open} onOpenChange={(e) => setOpen(e.open)}>
+          <Dialog.Trigger asChild>
+            <Button variant="outline">Create New Task</Button>
+          </Dialog.Trigger>
+          <Portal>
+            <Dialog.Backdrop />
+            <Dialog.Positioner>
+              <Dialog.Content>
+                <Dialog.Header>
+                  <Dialog.Title>Create New Task</Dialog.Title>
+                  <Dialog.CloseTrigger asChild position="absolute" right="2" top="2">
+                    <CloseButton size="sm" />
+                  </Dialog.CloseTrigger>
+                </Dialog.Header>
+                <Dialog.Body>
+                <div ref={dialogContentRef}>  {/*This is the ref for the dialog content for rendering the Combobox in the dialog box instead of parent comp*/}
+                  <CreateTaskForm onTaskCreated={handleTaskCreated} containerRef={dialogContentRef} />
+                </div>
+                </Dialog.Body>
+                <Dialog.Footer>
+                  <Dialog.CloseTrigger asChild>
+                    <CloseButton size="sm" />
+                  </Dialog.CloseTrigger>
+                </Dialog.Footer>
+              </Dialog.Content>
+            </Dialog.Positioner>
+          </Portal>
+          
+        </Dialog.Root>
+      </Box>
       {tasks.length === 0 ? (
-        <p>No tasks yet.</p>
+          <Text textAlign="center" py={10} color="gray.500">
+            No tasks yet. Create your first task!
+          </Text>
       ) : (
-        <ul>
-          {tasks.map((task) => (
-            <li key={task.id}>
-              <strong>{task.title}</strong> — {task.completion_status}
-            </li>
-          ))}
-        </ul>
+      <Presence
+        present={true}
+        animationStyle={{ _open: "scale-fade-in", _closed: "scale-fade-out" }}
+        animationDuration="moderate"
+      >
+        <Table.Root size="sm" interactive>
+          <Table.Header>
+            <Table.Row>
+              <Table.ColumnHeader>Task</Table.ColumnHeader>
+              <Table.ColumnHeader>Status</Table.ColumnHeader>
+            </Table.Row>
+          </Table.Header>
+      <Table.Body>
+        {tasks.map((task) => (
+          <Table.Row key={task.id}>
+            <Table.Cell>
+              <strong>{task.title}</strong>
+            </Table.Cell>
+            <Table.Cell>
+              <Badge colorPalette={getStatusColor(task.completion_status)}>
+                {task.completion_status}
+              </Badge>
+            </Table.Cell>
+          </Table.Row>
+        ))}
+      </Table.Body>
+      </Table.Root>
+      </Presence>
       )}
-    </div>
+
+    </Box>
   );
 }
