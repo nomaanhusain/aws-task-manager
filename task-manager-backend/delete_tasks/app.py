@@ -13,6 +13,12 @@ def lambda_handler(event, context):
     user_id = event['requestContext']['authorizer']['claims']['sub']
     task_id = event['pathParameters']['id']
 
+    headers = {
+        "Access-Control-Allow-Origin": "*",  # Or your frontend URL
+        "Access-Control-Allow-Headers": "Content-Type,Authorization",
+        "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
+    }
+
     try:
         table.delete_item(
             Key={'id': task_id},
@@ -20,16 +26,19 @@ def lambda_handler(event, context):
         )
         return {
             'statusCode': 200,
+            "headers": headers,
             'body': json.dumps({'message': 'Task deleted successfully'})
         }
     except ClientError as e:
         if e.response['Error']['Code'] == "ConditionalCheckFailedException":
             return {
                 'statusCode': 403,
+                "headers": headers,
                 'body': json.dumps({'message': 'You are not authorized to delete this task'})
             }
         else:
             return {
                 'statusCode': 500,
+                "headers": headers,
                 'body': json.dumps({'message': 'Internal Server Error'})
             }

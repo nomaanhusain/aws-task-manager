@@ -26,7 +26,7 @@ def lambda_handler(event, context):
     )
 
     headers = {
-        "Access-Control-Allow-Origin": "*",  # Or your frontend URL
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type,Authorization",
         "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
     }

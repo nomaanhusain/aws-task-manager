@@ -4,10 +4,12 @@ import { Box, Spinner, Text,
   Button, Heading,
   Table, Badge, Dialog, Portal,
   CloseButton, Presence,
-  Editable
+  Editable, Flex,
+  Select, createListCollection
  } from "@chakra-ui/react"
 
 import CreateTaskForm from "./components/CreateTaskForm";
+import DeleteTaskComponent from "./components/DeleteTaskComponent";
 
 type Task = {
   id: string;
@@ -23,7 +25,17 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  // const [isStatusEditing, setIsStatusEditing] = useState(false)
   const dialogContentRef = useRef<HTMLDivElement>(null);
+
+  const completion_optons = createListCollection({
+    items: [
+      { label: "Not Started", value: "not_started" },
+      { label: "In Progress", value: "in_progress" },
+      { label: "Completed", value: "completed" },
+    ],
+  })
+
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -54,9 +66,9 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
     switch (status.toLowerCase()) {
       case "completed":
         return "green";
-      case "in progress":
+      case "in_progress":
         return "blue";
-      case "not started":
+      case "not_started":
         return "yellow";
       default:
         return "gray";
@@ -88,6 +100,34 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
       // Optionally show toast or UI feedback
     }
   };
+
+  const handleStatusChange = async (taskId: string, newStatus: string) => {
+    try {
+      const session = await fetchAuthSession();
+      const token = session.tokens?.idToken?.toString();
+      const response = await fetch(
+        `https://uctzoa3zi9.execute-api.eu-central-1.amazonaws.com/Prod/tasks/${taskId}`,
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ completion_status: newStatus }),
+        }
+      );
+  
+      if (!response.ok) throw new Error("Failed to update task");
+  
+      // Update UI state if needed
+      setTasks(prev =>
+        prev.map(task =>
+          task.id === taskId ? { ...task, completion_status: newStatus } : task
+        )
+      );
+    } catch (err) {
+      console.error("Error updating status:", err);
+    }
+  };  
 
   if (loading) {
     return (
@@ -160,9 +200,45 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
               </Editable.Root>
             </Table.Cell>
             <Table.Cell>
-              <Badge colorPalette={getStatusColor(task.completion_status)}>
-                {task.completion_status}
-              </Badge>
+            <Select.Root
+              collection={completion_optons}
+              defaultValue={[task.completion_status]}
+              onValueChange={(e) => {handleStatusChange(task.id, e.value[0])}}
+              size="sm"
+              width="150px"
+            >
+              <Select.HiddenSelect />
+              <Select.Control>
+                <Select.Trigger>
+                <Flex align="center" gap={2} px={2}>
+                  <Box
+                    w="10px"
+                    h="10px"
+                    borderRadius="full"
+                    bg={getStatusColor(task.completion_status)}
+                  />
+                  <Text>{completion_optons.items.find((item) => item.value === task.completion_status)?.label}</Text>
+                </Flex>
+                </Select.Trigger>
+              </Select.Control>
+              <Portal>
+                <Select.Positioner>
+                  <Select.Content>
+                    {completion_optons.items.map((item) => (
+                      <Select.Item item={item} key={item.value}>
+                        <Badge colorPalette={getStatusColor(item.value)}>
+                          {item.label}
+                          </Badge>
+                        <Select.ItemIndicator />
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Portal>
+            </Select.Root>
+            </Table.Cell>
+            <Table.Cell>
+              <DeleteTaskComponent taskId={task.id} />
             </Table.Cell>
           </Table.Row>
         ))}
