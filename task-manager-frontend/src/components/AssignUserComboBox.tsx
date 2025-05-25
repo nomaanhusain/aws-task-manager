@@ -23,7 +23,6 @@ type Props = {
 
 export default function AssignUserCombobox({ users, assignedTo, setAssignedTo, containerRef }: Props) {
   const [searchValue, setSearchValue] = useState("");
-  console.log("Users in combobox:", users);
 
   const filteredUsers = useMemo(
     () =>
@@ -42,14 +41,8 @@ export default function AssignUserCombobox({ users, assignedTo, setAssignedTo, c
   );
 
   const handleValueChange = (details: Combobox.ValueChangeDetails) => {
-    console.log("Value changed:", details);
     setAssignedTo(details.value); // this will be an array of user_id strings
   };
-
-  // console.log("Search value:", searchValue);
-  // console.log("Filtered users:", filteredUsers);
-  // console.log("Items in collection:", collection.items)
-  // console.log("Collection:", collection);
 
 
   return (

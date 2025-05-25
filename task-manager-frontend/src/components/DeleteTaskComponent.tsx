@@ -4,13 +4,14 @@ import {
     Button
   } from "@chakra-ui/react"
 
-  import { LuTrash2 } from "react-icons/lu"
+import { LuTrash2 } from "react-icons/lu"
 
 type Props = {
     taskId: string;
+    onTaskDeleted: (id: string) => void; // Optional callback for parent component
 }
 
-export default function DeleteTaskComponent({ taskId }: Props) {
+export default function DeleteTaskComponent({ taskId, onTaskDeleted }: Props) {
 
     const [loading, setLoading] = useState(false);
 
@@ -26,6 +27,10 @@ export default function DeleteTaskComponent({ taskId }: Props) {
                     Authorization: `Bearer ${token}`,
                 },
             });
+
+            if (response.ok){
+                onTaskDeleted(taskId); // Notify parent component of successful deletion
+            }
 
             if (!response.ok) {
                 throw new Error('Failed to delete task');

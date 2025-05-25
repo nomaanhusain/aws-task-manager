@@ -118,7 +118,7 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
   
       if (!response.ok) throw new Error("Failed to update task");
   
-      // Update UI state if needed
+      // Update UI state after successful update
       setTasks(prev =>
         prev.map(task =>
           task.id === taskId ? { ...task, completion_status: newStatus } : task
@@ -127,7 +127,12 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
     } catch (err) {
       console.error("Error updating status:", err);
     }
-  };  
+  };
+
+  // handle task deletion: update the task list in the UI
+  const handleDeleteTask = (deletedId: string) => {
+    setTasks(prev => prev.filter(task => task.id !== deletedId))
+  }
 
   if (loading) {
     return (
@@ -238,7 +243,7 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
             </Select.Root>
             </Table.Cell>
             <Table.Cell>
-              <DeleteTaskComponent taskId={task.id} />
+              <DeleteTaskComponent taskId={task.id} onTaskDeleted={handleDeleteTask}/>
             </Table.Cell>
           </Table.Row>
         ))}

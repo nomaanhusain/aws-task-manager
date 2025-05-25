@@ -23,7 +23,7 @@ def lambda_handler(event, context):
         "title": task_title,
         "createdBy": user_id,
         "assignedTo": assigned_to,
-        "completion_status": "not started"
+        "completion_status": "not_started"
     }
     
     table.put_item(Item=item)
