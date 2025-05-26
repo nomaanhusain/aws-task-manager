@@ -16,12 +16,12 @@ type User = {
 
 type Props = {
   users: User[];
-  assignedTo: string[];
-  setAssignedTo: (ids: string[]) => void;
+  assigned_to: string[];
+  setassigned_to: (ids: string[]) => void;
   containerRef: React.RefObject<HTMLElement | null>;
 }
 
-export default function AssignUserCombobox({ users, assignedTo, setAssignedTo, containerRef }: Props) {
+export default function AssignUserCombobox({ users, assigned_to, setassigned_to, containerRef }: Props) {
   const [searchValue, setSearchValue] = useState("");
 
   const filteredUsers = useMemo(
@@ -41,7 +41,7 @@ export default function AssignUserCombobox({ users, assignedTo, setAssignedTo, c
   );
 
   const handleValueChange = (details: Combobox.ValueChangeDetails) => {
-    setAssignedTo(details.value); // this will be an array of user_id strings
+    setassigned_to(details.value); // this will be an array of user_id strings
   };
 
 
@@ -60,13 +60,13 @@ export default function AssignUserCombobox({ users, assignedTo, setAssignedTo, c
         collection={collection}
         multiple
         closeOnSelect={false}
-        value={assignedTo}
+        value={assigned_to}
         onValueChange={handleValueChange}
         onInputValueChange={(details) => setSearchValue(details.inputValue)}
         width="full"
       >
         <Wrap gap="2" mb={2}>
-          {assignedTo.map((id) => {
+          {assigned_to.map((id) => {
             const user = users.find((u) => u.user_id === id);
             return user ? <Badge key={id}>{user.username}</Badge> : null;
           })}

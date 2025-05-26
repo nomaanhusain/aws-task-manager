@@ -8,7 +8,7 @@ import { LuTrash2 } from "react-icons/lu"
 
 type Props = {
     taskId: string;
-    onTaskDeleted: (id: string) => void; // Optional callback for parent component
+    onTaskDeleted: (id: string) => void; //callback for parent component
 }
 
 export default function DeleteTaskComponent({ taskId, onTaskDeleted }: Props) {
@@ -35,8 +35,6 @@ export default function DeleteTaskComponent({ taskId, onTaskDeleted }: Props) {
             if (!response.ok) {
                 throw new Error('Failed to delete task');
             }
-
-            // Optionally, you can trigger a refresh or notify the parent component
         } catch (error) {
             console.error("Failed to delete task:", error);
         } finally {

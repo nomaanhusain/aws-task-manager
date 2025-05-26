@@ -17,8 +17,9 @@ def lambda_handler(event, context):
     task_title = body.get("title")
     assigned_to = body.get("assigned_to", [])  # optional field
     logger.info(f"Creating a new task with ID: {task_id}, and title {task_title} for user: {user_id}")
-    # it is important that there is a field with the exact name "id" otherwise DynamoDB will not be able to create the item, you can change it in Template.yaml tho
-    item = {
+    # it is important that there is a field with the exact name "id" otherwise DynamoDB will not be able to create the item, 
+    # you have to change it in the Template.yaml if you want to use a different name for the id field
+    task_obj = {
         "id": task_id,
         "title": task_title,
         "createdBy": user_id,
@@ -26,7 +27,7 @@ def lambda_handler(event, context):
         "completion_status": "not_started"
     }
     
-    table.put_item(Item=item)
+    table.put_item(Item=task_obj)
 
     return {
         "statusCode": 201,

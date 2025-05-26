@@ -14,7 +14,7 @@ def lambda_handler(event, context):
     task_id = event['pathParameters']['id']
 
     headers = {
-        "Access-Control-Allow-Origin": "*",  # Or your frontend URL
+        "Access-Control-Allow-Origin": "*",  # could be the frontend URL
         "Access-Control-Allow-Headers": "Content-Type,Authorization",
         "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
     }

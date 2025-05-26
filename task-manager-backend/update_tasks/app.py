@@ -49,7 +49,7 @@ def lambda_handler(event, context):
 
         if not item:
             return {"statusCode": 404, "headers": headers, "body": json.dumps({"message": "Task not found"})}
-        if item['createdBy'] != user_id:
+        if item['createdBy'] != user_id and 'assigned_to' in body: # Check if the user is authorized to modify the assignement of task
             return {"statusCode": 403, "headers": headers, "body": json.dumps({"message": "Not authorized to modify this task"})}
 
         # Update the item

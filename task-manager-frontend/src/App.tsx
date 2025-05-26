@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Authenticator } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
-import TaskList from "./TaskList";
+import TaskList from "./components/TaskList";
 import { Button, Box, Text, Flex } from "@chakra-ui/react"
 
 

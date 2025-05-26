@@ -8,16 +8,16 @@ import { Box, Spinner, Text,
   Select, createListCollection
  } from "@chakra-ui/react"
 
-import CreateTaskForm from "./components/CreateTaskForm";
-import DeleteTaskComponent from "./components/DeleteTaskComponent";
+import CreateTaskForm from "./CreateTaskForm";
+import DeleteTaskComponent from "./DeleteTaskComponent";
 import { Select as ChakraReactSelect} from "chakra-react-select";
+import { Toaster, toaster } from "@/components/ui/toaster"
 
-//TODO: Fix notation style in backend API and then here, use camelCase for consistency
 type Task = {
   id: string;
   title: string;
   completion_status: string;
-  assignedTo: string[]; // Array of user IDs
+  assigned_to: string[]; // Array of user IDs
 };
 type User = {
   user_id: string;
@@ -36,7 +36,6 @@ export default function TaskList({ onTaskCreated, refresh, displayName }: Props)
   const [users, setUsers] = useState<User[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  // const [isStatusEditing, setIsStatusEditing] = useState(false)
   const dialogContentRef = useRef<HTMLDivElement>(null);
 
   const completion_optons = createListCollection({
@@ -123,7 +122,6 @@ export default function TaskList({ onTaskCreated, refresh, displayName }: Props)
       }
     } catch (error) {
       console.error("Error updating title:", error);
-      // Optionally show toast or UI feedback
     }
   };
 
@@ -165,25 +163,42 @@ export default function TaskList({ onTaskCreated, refresh, displayName }: Props)
     const token = session.tokens?.idToken?.toString();
 
     console.log("Updating task assignment for taskId:", taskId, "with userIds:", userIds);
-    console.log(JSON.stringify({ assignedTo: userIds }))
-  
-    await fetch(`https://uctzoa3zi9.execute-api.eu-central-1.amazonaws.com/Prod/tasks/${taskId}`, {
+    console.log(JSON.stringify({ assigned_to: userIds }))
+    try{
+    const response = await fetch(`https://uctzoa3zi9.execute-api.eu-central-1.amazonaws.com/Prod/tasks/${taskId}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ assignedTo: userIds }),
+      body: JSON.stringify({ assigned_to: userIds }),
     });
 
-    // Update UI state after successful update
+    if(response.status === 403) {
+      toaster.create({
+        title: "Forbidden",
+        description: "Only the task creator can assign users to a task.",
+        type: "error",
+      });
+      return;
+    }
+
+    // Update UI state
     setTasks(prev =>
     prev.map(task =>
-      task.id === taskId ? { ...task, assignedTo: userIds } : task
+      task.id === taskId ? { ...task, assigned_to: userIds } : task
       )
     );
-  };
-
-  const userOptions = users.map((user) => ({
+  }catch (error) {
+    console.error("Error updating task assignment:", error);
+    toaster.create({
+      title: "Error",
+      description: "Failed to update task assignment.",
+      type: "error",
+    });
+  }
+};
+  // To present the users in a Select component, we need to transform the users array into a format that Chakra React Select can use.
+  const userOptions = users.filter((user: User) => user.username !== displayName).map((user) => ({
     label: user.username,
     value: user.user_id,
   }));
@@ -198,6 +213,7 @@ export default function TaskList({ onTaskCreated, refresh, displayName }: Props)
   }
   return (
     <Box p={5} borderWidth="2px" borderRadius="lg" boxShadow="md">
+      <Toaster />
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
         <Heading as="h2" size="lg">
           <Highlight query="Tasks" styles={{ px: "0.5", bg: "FireBrick", color: "LemonChiffon" }}>
@@ -307,14 +323,14 @@ export default function TaskList({ onTaskCreated, refresh, displayName }: Props)
               <ChakraReactSelect
                 isMulti
                 options={userOptions}
-                value={userOptions.filter((opt) => task.assignedTo.includes(opt.value))}
+                value={userOptions.filter((opt) => task.assigned_to.includes(opt.value))}
                 onChange={(selectedOptions) => {
                   const selectedUserIds = selectedOptions.map((opt) => opt.value);
                   updateTaskAssignment(task.id, selectedUserIds);
                 }}
               />
-            ) : task.assignedTo.length > 0 ? (
-              task.assignedTo.map((userId) => {
+            ) : task.assigned_to.length > 0 ? (
+              task.assigned_to.map((userId) => {
                 const user = users.find((u) => u.user_id === userId);
                 return (
                   <Text key={userId} fontSize="sm" color="gray.600">

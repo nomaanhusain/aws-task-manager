@@ -20,13 +20,13 @@ type User = {
 type Props = {
   onTaskCreated: () => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
-  currentUsername: string; // Optional prop to pass current user ID
+  currentUsername: string; // prop to pass current user ID
 };
 
 export default function CreateTaskForm({ onTaskCreated, containerRef, currentUsername }: Props) {
   const [title, setTitle] = useState("");
   const [users, setUsers] = useState<User[]>([]);
-  const [assignedTo, setAssignedTo] = useState<string[]>([]);
+  const [assigned_to, setassigned_to] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -60,11 +60,11 @@ export default function CreateTaskForm({ onTaskCreated, containerRef, currentUse
         "Content-Type": "application/json",
         Authorization: token!,
       },
-      body: JSON.stringify({ title, assignedTo }),
+      body: JSON.stringify({ title, assigned_to }),
     });
 
     setTitle("");
-    setAssignedTo([]);
+    setassigned_to([]);
     onTaskCreated();
     }finally {
       setIsSubmitting(false);
@@ -99,8 +99,8 @@ export default function CreateTaskForm({ onTaskCreated, containerRef, currentUse
       ) : (
       <AssignUserCombobox
         users={users}
-        assignedTo={assignedTo}
-        setAssignedTo={setAssignedTo}
+        assigned_to={assigned_to}
+        setassigned_to={setassigned_to}
         containerRef={containerRef}
       />
     )}
@@ -111,7 +111,7 @@ export default function CreateTaskForm({ onTaskCreated, containerRef, currentUse
         colorScheme="blue"
         width="full"
         size="md"
-        loading={isSubmitting} // Add this state if you want loading indicator
+        loading={isSubmitting}
         loadingText="Creating..."
       >
         Create Task

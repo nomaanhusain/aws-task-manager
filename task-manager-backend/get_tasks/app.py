@@ -8,15 +8,17 @@ table = dynamodb.Table('Tasks')
 
 def lambda_handler(event, context):
 
+    headers = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization",
+        "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
+    }
+
     # Handle OPTIONS request for CORS preflight
     if event['httpMethod'] == 'OPTIONS':
         return {
             "statusCode": 200,
-            "headers": {
-                "Access-Control-Allow-Origin": "*",  # Or your frontend URL instead of *
-                "Access-Control-Allow-Headers": "Content-Type,Authorization",
-                "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
-            },
+            "headers": headers,
             "body": ""
         }
 
@@ -25,11 +27,7 @@ def lambda_handler(event, context):
         FilterExpression=Attr("createdBy").eq(user_id) | Attr("assigned_to").contains(user_id)
     )
 
-    headers = {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type,Authorization",
-        "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
-    }
+    
     return {
         "statusCode": 200,
         "headers": headers,
