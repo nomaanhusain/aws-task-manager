@@ -30,6 +30,10 @@ def lambda_handler(event, context):
     if 'completion_status' in body:
         update_expression.append("completion_status = :s")
         expression_attribute_values[':s'] = body['completion_status']
+    
+    if 'assignedTo' in body:
+        update_expression.append("assignedTo = :a")
+        expression_attribute_values[':a'] = body['assignedTo']
 
     if not update_expression:
         return {
@@ -51,7 +55,7 @@ def lambda_handler(event, context):
         # Update the item
         table.update_item(
             Key={'id': task_id},
-            UpdateExpression="SET " + ", ".join(update_expression),
+            UpdateExpression="SET " + ", ".join(update_expression), # makes a dynamodb update expression
             ExpressionAttributeValues=expression_attribute_values
         )
 
