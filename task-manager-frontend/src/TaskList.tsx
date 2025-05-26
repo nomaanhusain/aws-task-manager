@@ -4,27 +4,38 @@ import { Box, Spinner, Text,
   Button, Heading,
   Table, Badge, Dialog, Portal,
   CloseButton, Presence,
-  Editable, Flex,
+  Editable, Flex, Highlight,
   Select, createListCollection
  } from "@chakra-ui/react"
 
 import CreateTaskForm from "./components/CreateTaskForm";
 import DeleteTaskComponent from "./components/DeleteTaskComponent";
+import { Select as ChakraReactSelect} from "chakra-react-select";
 
+//TODO: Fix notation style in backend API and then here, use camelCase for consistency
 type Task = {
   id: string;
   title: string;
-  completion_status: string;
+  completionStatus: string;
+  assignedTo: string[]; // Array of user IDs
+};
+type User = {
+  user_id: string;
+  username: string;
 };
 type Props = {
   refresh: number;
   onTaskCreated: () => void;
+  displayName: string;
 };
 
-export default function TaskList({ onTaskCreated, refresh }: Props) {
+export default function TaskList({ onTaskCreated, refresh, displayName }: Props) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
   // const [isStatusEditing, setIsStatusEditing] = useState(false)
   const dialogContentRef = useRef<HTMLDivElement>(null);
 
@@ -59,7 +70,22 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
     };
 
     fetchTasks();
+    const fetchUsers = async () => {
+          const session = await fetchAuthSession();
+          const token = session.tokens?.idToken?.toString();
+    
+          const res = await fetch("https://uctzoa3zi9.execute-api.eu-central-1.amazonaws.com/Prod/users", {
+            headers: { Authorization: token! },
+          });
+    
+          const data = await res.json();
+          setUsers(data);
+          setUsersLoading(false);
+        };
+    
+        fetchUsers();
   }, [refresh]);
+
   
 
   const getStatusColor = (status: string) => {
@@ -112,7 +138,7 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ completion_status: newStatus }),
+          body: JSON.stringify({ completionStatus: newStatus }),
         }
       );
   
@@ -121,7 +147,7 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
       // Update UI state after successful update
       setTasks(prev =>
         prev.map(task =>
-          task.id === taskId ? { ...task, completion_status: newStatus } : task
+          task.id === taskId ? { ...task, completionStatus: newStatus } : task
         )
       );
     } catch (err) {
@@ -133,6 +159,34 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
   const handleDeleteTask = (deletedId: string) => {
     setTasks(prev => prev.filter(task => task.id !== deletedId))
   }
+
+  const updateTaskAssignment = async (taskId: string, userIds: string[]) => {
+    const session = await fetchAuthSession();
+    const token = session.tokens?.idToken?.toString();
+
+    console.log("Updating task assignment for taskId:", taskId, "with userIds:", userIds);
+    console.log(JSON.stringify({ assignedTo: userIds }))
+  
+    await fetch(`https://uctzoa3zi9.execute-api.eu-central-1.amazonaws.com/Prod/tasks/${taskId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ assignedTo: userIds }),
+    });
+
+    // Update UI state after successful update
+    setTasks(prev =>
+    prev.map(task =>
+      task.id === taskId ? { ...task, assignedTo: userIds } : task
+      )
+    );
+  };
+
+  const userOptions = users.map((user) => ({
+    label: user.username,
+    value: user.user_id,
+  }));
 
   if (loading) {
     return (
@@ -146,11 +200,13 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
     <Box p={5} borderWidth="2px" borderRadius="lg" boxShadow="md">
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
         <Heading as="h2" size="lg">
+          <Highlight query="Tasks" styles={{ px: "0.5", bg: "FireBrick", color: "LemonChiffon" }}>
           Your Tasks
+          </Highlight>
         </Heading>
         <Dialog.Root open={open} onOpenChange={(e) => setOpen(e.open)}>
           <Dialog.Trigger asChild>
-            <Button variant="outline">Create New Task</Button>
+            <Button variant="surface" colorPalette={"green"}>Create New Task</Button>
           </Dialog.Trigger>
           <Portal>
             <Dialog.Backdrop />
@@ -164,7 +220,7 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
                 </Dialog.Header>
                 <Dialog.Body>
                 <div ref={dialogContentRef}>  {/*This is the ref for the dialog content for rendering the Combobox in the dialog box instead of parent comp*/}
-                  <CreateTaskForm onTaskCreated={handleTaskCreated} containerRef={dialogContentRef} />
+                  <CreateTaskForm onTaskCreated={handleTaskCreated} containerRef={dialogContentRef} currentUsername={displayName} />
                 </div>
                 </Dialog.Body>
                 <Dialog.Footer>
@@ -193,12 +249,14 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
             <Table.Row>
               <Table.ColumnHeader>Task</Table.ColumnHeader>
               <Table.ColumnHeader>Status</Table.ColumnHeader>
+              <Table.ColumnHeader>Assigned To</Table.ColumnHeader>
+              <Table.ColumnHeader></Table.ColumnHeader>
             </Table.Row>
           </Table.Header>
       <Table.Body>
         {tasks.map((task) => (
           <Table.Row key={task.id}>
-            <Table.Cell>
+            <Table.Cell width="35%">
               <Editable.Root defaultValue={task.title} onValueCommit={(newTitle) => updateTaskTitle(task.id, newTitle.value)}>
               <Editable.Preview />
                 <Editable.Input />
@@ -207,10 +265,10 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
             <Table.Cell>
             <Select.Root
               collection={completion_optons}
-              defaultValue={[task.completion_status]}
+              defaultValue={[task.completionStatus]}
               onValueChange={(e) => {handleStatusChange(task.id, e.value[0])}}
               size="sm"
-              width="150px"
+              width="35%"
             >
               <Select.HiddenSelect />
               <Select.Control>
@@ -220,9 +278,9 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
                     w="10px"
                     h="10px"
                     borderRadius="full"
-                    bg={getStatusColor(task.completion_status)}
+                    bg={getStatusColor(task.completionStatus)}
                   />
-                  <Text>{completion_optons.items.find((item) => item.value === task.completion_status)?.label}</Text>
+                  <Text>{completion_optons.items.find((item) => item.value === task.completionStatus)?.label}</Text>
                 </Flex>
                 </Select.Trigger>
               </Select.Control>
@@ -242,7 +300,33 @@ export default function TaskList({ onTaskCreated, refresh }: Props) {
               </Portal>
             </Select.Root>
             </Table.Cell>
-            <Table.Cell>
+            <Table.Cell width={"35%"} onDoubleClick={() => setIsEditing(!isEditing)}>
+            {usersLoading ? (
+              <Spinner size="sm" />
+            ) : isEditing ? (
+              <ChakraReactSelect
+                isMulti
+                options={userOptions}
+                value={userOptions.filter((opt) => task.assignedTo.includes(opt.value))}
+                onChange={(selectedOptions) => {
+                  const selectedUserIds = selectedOptions.map((opt) => opt.value);
+                  updateTaskAssignment(task.id, selectedUserIds);
+                }}
+              />
+            ) : task.assignedTo.length > 0 ? (
+              task.assignedTo.map((userId) => {
+                const user = users.find((u) => u.user_id === userId);
+                return (
+                  <Text key={userId} fontSize="sm" color="gray.600">
+                    {user ? user.username : userId}
+                  </Text>
+                );
+              })
+            ) : (
+              <Text fontSize="sm" color="gray.500">Unassigned</Text>
+            )}
+            </Table.Cell>
+            <Table.Cell width={"5%"}>
               <DeleteTaskComponent taskId={task.id} onTaskDeleted={handleDeleteTask}/>
             </Table.Cell>
           </Table.Row>

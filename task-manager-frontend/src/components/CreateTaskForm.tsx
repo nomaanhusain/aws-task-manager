@@ -7,8 +7,7 @@ import {
   Input,
   Spinner,
 } from "@chakra-ui/react";
-// import { toaster } from "@/components/ui/toaster"
-import { useToast } from "@chakra-ui/toast";
+
 import AssignUserCombobox from "./AssignUserComboBox";
 
 type User = {
@@ -21,14 +20,14 @@ type User = {
 type Props = {
   onTaskCreated: () => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
+  currentUsername: string; // Optional prop to pass current user ID
 };
 
-export default function CreateTaskForm({ onTaskCreated, containerRef }: Props) {
+export default function CreateTaskForm({ onTaskCreated, containerRef, currentUsername }: Props) {
   const [title, setTitle] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [assignedTo, setAssignedTo] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const toast = useToast();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -40,20 +39,13 @@ export default function CreateTaskForm({ onTaskCreated, containerRef }: Props) {
       });
 
       const data = await res.json();
-      // console.log("Fetched users:", data);
-      setUsers(data);
+      // Filter out the current user from the list
+      const filteredUsers = data.filter((user: User) => user.username !== currentUsername);
+      setUsers(filteredUsers);
     };
 
     fetchUsers();
   }, []);
-
-  // const handleToggleAssign = (userId: string) => {
-  //   setAssignedTo((prev) =>
-  //     prev.includes(userId)
-  //       ? prev.filter((id) => id !== userId)
-  //       : [...prev, userId]
-  //   );
-  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,14 +61,6 @@ export default function CreateTaskForm({ onTaskCreated, containerRef }: Props) {
         Authorization: token!,
       },
       body: JSON.stringify({ title, assignedTo }),
-    });
-
-    toast({
-      title: "Task created",
-      description: "Your task has been successfully created.",
-      status: "success",
-      duration: 5000,
-      isClosable: true,
     });
 
     setTitle("");

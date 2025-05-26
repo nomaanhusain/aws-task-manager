@@ -83,7 +83,6 @@ export default function AssignUserCombobox({ users, assignedTo, setAssignedTo, c
           <Combobox.Positioner>
             <Combobox.Content>
               <Combobox.ItemGroup>
-                <Combobox.ItemGroupLabel>Users</Combobox.ItemGroupLabel>
                 {filteredUsers.length === 0 ? (
                   <Combobox.Empty>No users found</Combobox.Empty>
                 ) : (

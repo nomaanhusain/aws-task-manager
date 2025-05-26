@@ -7,7 +7,7 @@
     //     <ul>
     //       {tasks.map((task) => (
     //         <li key={task.id}>
-    //           <strong>{task.title}</strong> — {task.completion_status}
+    //           <strong>{task.title}</strong> — {task.completionStatus}
     //         </li>
     //       ))}
     //     </ul>
@@ -219,8 +219,8 @@ import {
 
 //tasklist.tsx completion Badge
 <Table.Cell>
-              <Badge colorPalette={getStatusColor(task.completion_status)}>
-                {task.completion_status}
+              <Badge colorPalette={getStatusColor(task.completionStatus)}>
+                {task.completionStatus}
               </Badge>
             </Table.Cell>
 
@@ -228,7 +228,7 @@ import {
 Old
   <Select.Root
                 collection={completion_optons}
-                defaultValue={[task.completion_status]}
+                defaultValue={[task.completionStatus]}
                 onValueChange={(e) => handleStatusChange(task.id, e.value[0])}
                 size="sm"
                 width="200px"
@@ -242,9 +242,9 @@ Old
                       w="10px"
                       h="10px"
                       borderRadius="full"
-                      bg={getStatusColor(task.completion_status)}
+                      bg={getStatusColor(task.completionStatus)}
                     />
-                    <Text>{task.completion_status}</Text>
+                    <Text>{task.completionStatus}</Text>
                   </Flex>
                   </Select.Trigger>
                   <Select.Indicator /> 
@@ -264,3 +264,97 @@ Old
                   </Select.Positioner>
                 </Portal>
               </Select.Root>
+
+
+//App.tsx
+
+
+import { useEffect, useState } from "react";
+import { fetchAuthSession } from "aws-amplify/auth";
+import { Authenticator } from "@aws-amplify/ui-react";
+import "@aws-amplify/ui-react/styles.css";
+// import CreateTaskForm from "./components/CreateTaskForm";
+import TaskList from "./TaskList";
+import { Button, Box, Text, Flex } from "@chakra-ui/react"
+
+function App() {
+  const [displayName, setDisplayName] = useState("");
+  const [refreshFlag, setRefreshFlag] = useState(0);
+  const handleTaskCreated = () => {
+    setRefreshFlag(prev => prev + 1);
+  };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const session = await fetchAuthSession();
+      const token = session.tokens?.idToken?.toString();
+
+      const res = await fetch(
+        "https://uctzoa3zi9.execute-api.eu-central-1.amazonaws.com/Prod/me",
+        {
+          headers: {
+            Authorization: token!,
+          },
+        }
+      );
+
+      const data = await res.json();
+      setDisplayName(data.username || data.nickname || "User");
+    };
+
+    fetchUser();
+  }, []);
+
+  return (
+    <Authenticator>
+      {({ signOut }) => (
+        <Box minH="100vh">
+          {/* Top Navbar */}
+          <Flex
+            as="header"
+            boxShadow="sm"
+            px={6}
+            py={4}
+            align="center"
+            justify="space-between"
+          >
+            <Text fontSize="lg" fontWeight="bold">
+              Hello, {displayName}
+            </Text>
+            <Button colorScheme="red" onClick={signOut}>
+              Sign Out
+            </Button>
+          </Flex>
+
+          {/* Main Content */}
+          <Box mx="auto" p={6}>
+            <TaskList
+              refresh={refreshFlag}
+              onTaskCreated={handleTaskCreated}
+              displayName={displayName}
+            />
+          </Box>
+        </Box>
+      )}
+</Authenticator>
+  );
+}
+
+export default App;
+
+//TaskList.tsx
+            <Table.Cell width={"35%"}>
+            {usersLoading ? (
+                <Spinner size="sm" color="gray.500" />
+              ) : task.assignedTo.length > 0 ? (
+                task.assignedTo.map((userId) => (
+                  <Text key={userId} fontSize="sm" color="gray.600">
+                    {users.find((user) => user.user_id === userId)?.username || "Unknown User"}
+                  </Text>
+                ))
+              ) : (
+                <Text fontSize="sm" color="gray.500">Unassigned</Text>
+              )}
+            </Table.Cell>
+
+
