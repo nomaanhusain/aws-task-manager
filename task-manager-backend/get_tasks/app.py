@@ -22,7 +22,7 @@ def lambda_handler(event, context):
 
     user_id = event["requestContext"]["authorizer"]["claims"]["sub"]
     response = table.scan(
-        FilterExpression=Attr("createdBy").eq(user_id) | Attr("assignedTo").contains(user_id)
+        FilterExpression=Attr("createdBy").eq(user_id) | Attr("assigned_to").contains(user_id)
     )
 
     headers = {

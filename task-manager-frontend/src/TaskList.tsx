@@ -16,7 +16,7 @@ import { Select as ChakraReactSelect} from "chakra-react-select";
 type Task = {
   id: string;
   title: string;
-  completionStatus: string;
+  completion_status: string;
   assignedTo: string[]; // Array of user IDs
 };
 type User = {
@@ -138,7 +138,7 @@ export default function TaskList({ onTaskCreated, refresh, displayName }: Props)
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ completionStatus: newStatus }),
+          body: JSON.stringify({ completion_status: newStatus }),
         }
       );
   
@@ -147,7 +147,7 @@ export default function TaskList({ onTaskCreated, refresh, displayName }: Props)
       // Update UI state after successful update
       setTasks(prev =>
         prev.map(task =>
-          task.id === taskId ? { ...task, completionStatus: newStatus } : task
+          task.id === taskId ? { ...task, completion_status: newStatus } : task
         )
       );
     } catch (err) {
@@ -265,7 +265,7 @@ export default function TaskList({ onTaskCreated, refresh, displayName }: Props)
             <Table.Cell>
             <Select.Root
               collection={completion_optons}
-              defaultValue={[task.completionStatus]}
+              defaultValue={[task.completion_status]}
               onValueChange={(e) => {handleStatusChange(task.id, e.value[0])}}
               size="sm"
               width="35%"
@@ -278,9 +278,9 @@ export default function TaskList({ onTaskCreated, refresh, displayName }: Props)
                     w="10px"
                     h="10px"
                     borderRadius="full"
-                    bg={getStatusColor(task.completionStatus)}
+                    bg={getStatusColor(task.completion_status)}
                   />
-                  <Text>{completion_optons.items.find((item) => item.value === task.completionStatus)?.label}</Text>
+                  <Text>{completion_optons.items.find((item) => item.value === task.completion_status)?.label}</Text>
                 </Flex>
                 </Select.Trigger>
               </Select.Control>

@@ -7,7 +7,7 @@
     //     <ul>
     //       {tasks.map((task) => (
     //         <li key={task.id}>
-    //           <strong>{task.title}</strong> — {task.completionStatus}
+    //           <strong>{task.title}</strong> — {task.completion_status}
     //         </li>
     //       ))}
     //     </ul>
@@ -219,8 +219,8 @@ import {
 
 //tasklist.tsx completion Badge
 <Table.Cell>
-              <Badge colorPalette={getStatusColor(task.completionStatus)}>
-                {task.completionStatus}
+              <Badge colorPalette={getStatusColor(task.completion_status)}>
+                {task.completion_status}
               </Badge>
             </Table.Cell>
 
@@ -228,7 +228,7 @@ import {
 Old
   <Select.Root
                 collection={completion_optons}
-                defaultValue={[task.completionStatus]}
+                defaultValue={[task.completion_status]}
                 onValueChange={(e) => handleStatusChange(task.id, e.value[0])}
                 size="sm"
                 width="200px"
@@ -242,9 +242,9 @@ Old
                       w="10px"
                       h="10px"
                       borderRadius="full"
-                      bg={getStatusColor(task.completionStatus)}
+                      bg={getStatusColor(task.completion_status)}
                     />
-                    <Text>{task.completionStatus}</Text>
+                    <Text>{task.completion_status}</Text>
                   </Flex>
                   </Select.Trigger>
                   <Select.Indicator /> 

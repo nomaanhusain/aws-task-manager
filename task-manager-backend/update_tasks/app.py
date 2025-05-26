@@ -27,13 +27,13 @@ def lambda_handler(event, context):
         update_expression.append("title = :t")
         expression_attribute_values[':t'] = body['title']
 
-    if 'completionStatus' in body:
-        update_expression.append("completionStatus = :s")
-        expression_attribute_values[':s'] = body['completionStatus']
+    if 'completion_status' in body:
+        update_expression.append("completion_status = :s")
+        expression_attribute_values[':s'] = body['completion_status']
     
-    if 'assignedTo' in body:
-        update_expression.append("assignedTo = :a")
-        expression_attribute_values[':a'] = body['assignedTo']
+    if 'assigned_to' in body:
+        update_expression.append("assigned_to = :a")
+        expression_attribute_values[':a'] = body['assigned_to']
 
     if not update_expression:
         return {

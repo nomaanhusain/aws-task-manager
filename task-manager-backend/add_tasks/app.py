@@ -15,15 +15,15 @@ def lambda_handler(event, context):
     body = json.loads(event["body"])
     task_id = str(uuid.uuid4())
     task_title = body.get("title")
-    assigned_to = body.get("assignedTo", [])  # optional field
+    assigned_to = body.get("assigned_to", [])  # optional field
     logger.info(f"Creating a new task with ID: {task_id}, and title {task_title} for user: {user_id}")
     # it is important that there is a field with the exact name "id" otherwise DynamoDB will not be able to create the item, you can change it in Template.yaml tho
     item = {
         "id": task_id,
         "title": task_title,
         "createdBy": user_id,
-        "assignedTo": assigned_to,
-        "completionStatus": "not_started"
+        "assigned_to": assigned_to,
+        "completion_status": "not_started"
     }
     
     table.put_item(Item=item)
