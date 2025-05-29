@@ -14,7 +14,7 @@ const components = {
       <View textAlign="center" padding={tokens.space.large}>
         <Image
           alt="Tasks logo"
-          src="./tasks_bg.png"
+          src="https://raw.githubusercontent.com/nomaanhusain/aws-task-manager/main/task-manager-frontend/tasks_bg.png"
           width={150}
           height={150}
         />
@@ -279,7 +279,7 @@ function App() {
           >
           <Flex align="center" gap={4}>
             <Image
-              src="./tasks_bg.png"
+              src="https://raw.githubusercontent.com/nomaanhusain/aws-task-manager/main/task-manager-frontend/tasks_bg.png"
               alt="Tasks Logo"
               width={50}
               height={50}
