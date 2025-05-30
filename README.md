@@ -71,11 +71,11 @@ Located in ```/task-manager-frontend```
 
 - PostConfirmation Lambda stores new users into DB for tasks to be assignable to them
 
-### 🪜Future Enhancements
+## 🪜Future Enhancements
 
 - Creation of user groups
 
-- Add due dates, labels, and priorities
+- Add due dates, and priorities
 
 - Allow task commenting and descriptions
 
